@@ -8,14 +8,12 @@
   <meta name="description"
     content="CodeSense: Intelligent code review powered by AI. Analyze bugs, security vulnerabilities, performance issues, and code style instantly." />
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
 
-  <!-- highlight.js -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
@@ -23,7 +21,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
 
   <style>
-    /* ============ CSS RESET & VARIABLES ============ */
     *,
     *::before,
     *::after {
@@ -33,7 +30,6 @@
     }
 
     :root {
-      /* Dark Theme (default) */
       --bg-primary: #0D1117;
       --bg-secondary: #161B22;
       --bg-tertiary: #21262D;
@@ -97,7 +93,6 @@
       --shadow-glow: 0 0 20px rgba(8, 145, 178, 0.08);
     }
 
-    /* ============ GLOBAL STYLES ============ */
     html {
       font-size: 16px;
       scroll-behavior: smooth;
@@ -112,7 +107,6 @@
       transition: background var(--transition), color var(--transition);
     }
 
-    /* ============ SCROLLBAR ============ */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -131,7 +125,6 @@
       background: var(--text-muted);
     }
 
-    /* ============ NAVBAR ============ */
     .navbar {
       position: sticky;
       top: 0;
@@ -166,7 +159,6 @@
       gap: 8px;
     }
 
-    /* ============ BUTTONS ============ */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -241,7 +233,6 @@
       color: var(--accent);
     }
 
-    /* ============ MAIN LAYOUT ============ */
     .main-container {
       display: grid;
       grid-template-columns: 2fr 3fr;
@@ -263,7 +254,6 @@
       background: var(--bg-primary);
     }
 
-    /* ============ SECTIONS ============ */
     .section-title {
       display: flex;
       align-items: center;
@@ -282,7 +272,6 @@
       height: 16px;
     }
 
-    /* ============ FORM CONTROLS ============ */
     .form-group {
       margin-bottom: 16px;
     }
@@ -324,7 +313,6 @@
       box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
-    /* ============ CODE EDITOR ============ */
     .editor-wrapper {
       position: relative;
       border: 1px solid var(--border-color);
@@ -417,7 +405,6 @@
       color: var(--error);
     }
 
-    /* ============ ACTION BAR ============ */
     .action-bar {
       display: flex;
       gap: 8px;
@@ -431,7 +418,6 @@
       min-width: 140px;
     }
 
-    /* ============ LOADING / SCAN EFFECT ============ */
     .scan-line {
       position: absolute;
       top: 0;
@@ -473,7 +459,6 @@
       opacity: 0.6;
     }
 
-    /* Spinner */
     .spinner {
       width: 16px;
       height: 16px;
@@ -489,7 +474,6 @@
       }
     }
 
-    /* ============ RESULTS ============ */
     .results-placeholder {
       display: flex;
       flex-direction: column;
@@ -519,7 +503,6 @@
       max-width: 320px;
     }
 
-    /* Scorecard */
     .scorecard {
       display: flex;
       align-items: center;
@@ -597,7 +580,6 @@
       line-height: 1.6;
     }
 
-    /* Radar Chart */
     .radar-section {
       padding: 24px;
       background: var(--bg-card);
@@ -620,7 +602,6 @@
       max-width: 100%;
     }
 
-    /* Issues */
     .issues-section {
       animation: fadeInUp 0.5s ease forwards;
       animation-delay: 0.2s;
@@ -830,7 +811,6 @@
       font-family: var(--font-mono);
     }
 
-    /* Strengths */
     .strengths-section {
       padding: 24px;
       background: var(--bg-card);
@@ -860,7 +840,6 @@
       margin-top: 1px;
     }
 
-    /* Share Bar */
     .share-bar {
       display: flex;
       gap: 8px;
@@ -870,7 +849,6 @@
       opacity: 0;
     }
 
-    /* ============ HISTORY ============ */
     .history-section {
       margin-top: 24px;
       border-top: 1px solid var(--border-color);
@@ -945,7 +923,6 @@
       opacity: 1;
     }
 
-    /* ============ DIFF VIEW ============ */
     .diff-modal-overlay {
       display: none;
       position: fixed;
@@ -1026,7 +1003,6 @@
       background: transparent;
     }
 
-    /* ============ SETTINGS MODAL ============ */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -1103,7 +1079,6 @@
       gap: 8px;
     }
 
-    /* ============ TOAST ============ */
     .toast-container {
       position: fixed;
       bottom: 24px;
@@ -1152,7 +1127,6 @@
       }
     }
 
-    /* ============ ANIMATIONS ============ */
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -1179,7 +1153,6 @@
       animation: fadeIn 0.4s ease forwards;
     }
 
-    /* ============ RESPONSIVE ============ */
     @media (max-width: 900px) {
       .main-container {
         grid-template-columns: 1fr;
@@ -1214,7 +1187,6 @@
       }
     }
 
-    /* ============ PRINT STYLES ============ */
     @media print {
 
       .navbar,
@@ -1267,7 +1239,6 @@
       }
     }
 
-    /* Shortcut hint */
     .shortcut-hint {
       display: inline-flex;
       align-items: center;
@@ -1287,7 +1258,6 @@
       font-size: 0.625rem;
     }
 
-    /* Tab-like nav for mobile switching */
     .panel-tabs {
       display: none;
       border-bottom: 1px solid var(--border-color);
@@ -1322,7 +1292,6 @@
       }
     }
 
-    /* Empty issue state */
     .issues-empty {
       text-align: center;
       padding: 24px;
@@ -1334,7 +1303,6 @@
 
 <body data-theme="dark">
 
-  <!-- NAVBAR -->
   <nav class="navbar" id="navbar">
     <a href="#" class="navbar-brand">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1357,16 +1325,13 @@
     </div>
   </nav>
 
-  <!-- MOBILE TABS -->
   <div class="panel-tabs">
     <button class="panel-tab active" onclick="switchTab('input')">Input</button>
     <button class="panel-tab" onclick="switchTab('result')">Result</button>
   </div>
 
-  <!-- MAIN LAYOUT -->
   <div class="main-container" id="mainContainer">
 
-    <!-- LEFT: INPUT PANEL -->
     <div class="panel panel-left" id="panelLeft">
       <div class="section-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1457,7 +1422,6 @@
         </button>
       </div>
 
-      <!-- HISTORY -->
       <div class="history-section" id="historySection">
         <div class="history-header">
           <div class="section-title" style="margin-bottom:0">
@@ -1473,7 +1437,6 @@
       </div>
     </div>
 
-    <!-- RIGHT: RESULTS PANEL -->
     <div class="panel panel-right" id="panelRight">
       <div id="resultsArea">
         <div class="results-placeholder" id="placeholder">
@@ -1492,7 +1455,6 @@
     </div>
   </div>
 
-  <!-- SETTINGS MODAL -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal">
       <div class="modal-header">
@@ -1526,7 +1488,6 @@
     </div>
   </div>
 
-  <!-- DIFF MODAL -->
   <div class="diff-modal-overlay" id="diffModal">
     <div class="diff-modal">
       <div class="diff-modal-header">
@@ -1551,18 +1512,14 @@
     </div>
   </div>
 
-  <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    /* ============ STATE ============ */
     let currentReview = null;
     let currentCode = '';
     let isReviewing = false;
 
-    /* ============ INIT ============ */
     document.addEventListener('DOMContentLoaded', () => {
-      // Load settings
       const savedKey = localStorage.getItem('cs_api_key');
       if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
 
@@ -1570,16 +1527,13 @@
       document.body.setAttribute('data-theme', savedTheme);
       document.getElementById('themeSelect').value = savedTheme;
 
-      // Char count
       const codeInput = document.getElementById('codeInput');
       codeInput.addEventListener('input', updateCharCount);
 
-      // Lang label sync
       document.getElementById('langSelect').addEventListener('change', e => {
         document.getElementById('langLabel').textContent = e.target.value;
       });
 
-      // Keyboard shortcut
       document.addEventListener('keydown', e => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
           e.preventDefault();
@@ -1591,7 +1545,6 @@
         }
       });
 
-      // Tab support in textarea
       codeInput.addEventListener('keydown', e => {
         if (e.key === 'Tab') {
           e.preventDefault();
@@ -1607,7 +1560,6 @@
       updateCharCount();
     });
 
-    /* ============ CHAR COUNT ============ */
     function updateCharCount() {
       const el = document.getElementById('charCount');
       const len = document.getElementById('codeInput').value.length;
@@ -1615,13 +1567,11 @@
       el.className = 'char-count' + (len > 9000 ? ' error' : len > 7500 ? ' warning' : '');
     }
 
-    /* ============ THEME ============ */
     function applyTheme(theme) {
       document.body.setAttribute('data-theme', theme);
       localStorage.setItem('cs_theme', theme);
     }
 
-    /* ============ SETTINGS ============ */
     function openSettings() {
       document.getElementById('settingsModal').classList.add('visible');
     }
@@ -1639,7 +1589,6 @@
       showToast('Pengaturan tersimpan!', 'success');
     }
 
-    /* ============ SAMPLE CODE ============ */
     const SAMPLE_CODES = {
       javascript: `// User Authentication Handler
 function authenticateUser(req, res) {
@@ -2058,7 +2007,6 @@ void processInput(char* input) {
       showToast('Contoh kode dimuat!', 'info');
     }
 
-    /* ============ FORMAT CODE (AI) ============ */
     async function formatCode() {
       const code = document.getElementById('codeInput').value.trim();
       if (!code) { showToast('Masukkan kode terlebih dahulu', 'error'); return; }
@@ -2099,7 +2047,6 @@ void processInput(char* input) {
       }
     }
 
-    /* ============ REVIEW ENGINE ============ */
     async function startReview() {
       if (isReviewing) return;
 
@@ -2195,7 +2142,6 @@ Pastikan:
 
         const data = await resp.json();
 
-        // Extract text content (skip thinking blocks)
         let textContent = '';
         for (const block of data.content) {
           if (block.type === 'text') {
@@ -2204,13 +2150,10 @@ Pastikan:
           }
         }
 
-        // Parse JSON from response
         let review;
         try {
-          // Try direct parse first
           review = JSON.parse(textContent);
         } catch {
-          // Try extracting JSON from possible markdown
           const jsonMatch = textContent.match(/```(?:json)?\s*([\s\S]*?)```/) || textContent.match(/(\{[\s\S]*\})/);
           if (jsonMatch) {
             review = JSON.parse(jsonMatch[1]);
@@ -2248,7 +2191,6 @@ Pastikan:
       }
     }
 
-    /* ============ RENDER RESULTS ============ */
     function renderResults(review) {
       const area = document.getElementById('resultsArea');
 
@@ -2260,7 +2202,6 @@ Pastikan:
       const circumference = 2 * Math.PI * 45;
       const offset = circumference - (review.overall_score / 100) * circumference;
 
-      // Count issues by severity
       const sevCounts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
       const typeCounts = { bug: 0, security: 0, performance: 0, style: 0, logic: 0 };
       (review.issues || []).forEach(i => {
@@ -2268,7 +2209,6 @@ Pastikan:
         typeCounts[i.type] = (typeCounts[i.type] || 0) + 1;
       });
 
-      // Check if all issues have code_fix
       const allHaveFixes = review.issues && review.issues.length > 0 && review.issues.every(i => i.code_fix);
 
       area.innerHTML = `
@@ -2366,10 +2306,8 @@ Pastikan:
         ` : ''}
       `;
 
-      // Draw radar chart
       setTimeout(() => drawRadarChart(review.metrics), 100);
 
-      // Re-highlight code fixes
       area.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
     }
 
@@ -2410,21 +2348,17 @@ Pastikan:
       btn.classList.toggle('open');
       suggestion.classList.toggle('visible');
 
-      // Highlight code on first open
       if (suggestion.classList.contains('visible')) {
         suggestion.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
       }
     }
 
-    /* ============ FILTERS & SORT ============ */
     let activeFilter = { severity: 'all', type: null };
 
     function filterIssues(value, filterType) {
-      // Update active filter
       if (filterType === 'severity') {
         activeFilter.severity = value;
         activeFilter.type = null;
-        // Update button states
         document.querySelectorAll('#severityFilters .filter-btn').forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
         document.querySelectorAll('#typeFilters .filter-btn').forEach(b => b.classList.remove('active'));
@@ -2466,7 +2400,6 @@ Pastikan:
       cards.forEach(card => container.appendChild(card));
     }
 
-    /* ============ RADAR CHART ============ */
     function drawRadarChart(metrics) {
       const canvas = document.getElementById('radarChart');
       if (!canvas) return;
@@ -2492,10 +2425,8 @@ Pastikan:
       const angleStep = (2 * Math.PI) / n;
       const startAngle = -Math.PI / 2;
 
-      // Clear
       ctx.clearRect(0, 0, size, size);
 
-      // Grid rings
       const isDark = document.body.getAttribute('data-theme') === 'dark';
       for (let ring = 1; ring <= 5; ring++) {
         const r = (ring / 5) * maxR;
@@ -2513,7 +2444,6 @@ Pastikan:
         ctx.stroke();
       }
 
-      // Axis lines
       for (let i = 0; i < n; i++) {
         const angle = startAngle + i * angleStep;
         ctx.beginPath();
@@ -2523,7 +2453,6 @@ Pastikan:
         ctx.stroke();
       }
 
-      // Data polygon
       ctx.beginPath();
       for (let i = 0; i <= n; i++) {
         const idx = i % n;
@@ -2541,7 +2470,6 @@ Pastikan:
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Data points
       for (let i = 0; i < n; i++) {
         const angle = startAngle + i * angleStep;
         const r = (values[i] / 10) * maxR;
@@ -2556,7 +2484,6 @@ Pastikan:
         ctx.stroke();
       }
 
-      // Labels
       ctx.font = '500 11px Inter, sans-serif';
       ctx.fillStyle = isDark ? '#8B949E' : '#57606A';
       ctx.textAlign = 'center';
@@ -2568,11 +2495,9 @@ Pastikan:
         const x = cx + lr * Math.cos(angle);
         const y = cy + lr * Math.sin(angle);
 
-        // Label text
         ctx.fillStyle = isDark ? '#8B949E' : '#57606A';
         ctx.fillText(labels[i], x, y - 7);
 
-        // Value
         ctx.font = '700 12px "JetBrains Mono", monospace';
         ctx.fillStyle = '#06B6D4';
         ctx.fillText(values[i] + '/10', x, y + 8);
@@ -2580,15 +2505,12 @@ Pastikan:
       }
     }
 
-    /* ============ DIFF VIEW ============ */
     function openDiff() {
       if (!currentReview || !currentCode) return;
 
       const lang = document.getElementById('langSelect').value;
 
-      // Build "fixed" code by applying fixes (simplified: show original and suggested fixes)
       let fixedCode = currentCode;
-      // We just show the original and concatenate all fixes as conceptual improvement
       const fixes = currentReview.issues
         .filter(i => i.code_fix)
         .map(i => `// FIX for: ${i.title}\n${i.code_fix}`)
@@ -2597,7 +2519,6 @@ Pastikan:
       document.getElementById('diffOriginal').textContent = currentCode;
       document.getElementById('diffFixed').textContent = fixes || currentCode;
 
-      // Highlight
       document.querySelectorAll('#diffModal pre code').forEach(block => {
         block.className = `language-${lang}`;
         hljs.highlightElement(block);
@@ -2610,7 +2531,6 @@ Pastikan:
       document.getElementById('diffModal').classList.remove('visible');
     }
 
-    /* ============ HISTORY ============ */
     function getHistory() {
       try { return JSON.parse(localStorage.getItem('cs_history') || '[]'); }
       catch { return []; }
@@ -2629,7 +2549,6 @@ Pastikan:
         code
       });
 
-      // Keep max 10
       if (history.length > 10) history.length = 10;
       localStorage.setItem('cs_history', JSON.stringify(history));
       renderHistory();
@@ -2690,7 +2609,6 @@ Pastikan:
       renderResults(item.review);
       showToast('Review dimuat dari riwayat', 'info');
 
-      // Switch to results tab on mobile
       if (window.innerWidth <= 900) switchTab('result');
     }
 
@@ -2708,7 +2626,6 @@ Pastikan:
       showToast('Semua riwayat dihapus', 'info');
     }
 
-    /* ============ SHARE ============ */
     function copyReport() {
       if (!currentReview) { showToast('Belum ada review untuk di-copy', 'error'); return; }
 
@@ -2747,7 +2664,6 @@ ${(r.strengths || []).map(s => `- ✅ ${s}`).join('\n')}
       setTimeout(() => window.print(), 300);
     }
 
-    /* ============ TOAST ============ */
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -2770,7 +2686,6 @@ ${(r.strengths || []).map(s => `- ✅ ${s}`).join('\n')}
       }, 3500);
     }
 
-    /* ============ MOBILE TABS ============ */
     function switchTab(tab) {
       const tabs = document.querySelectorAll('.panel-tab');
       tabs.forEach(t => t.classList.remove('active'));

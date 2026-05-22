@@ -1,0 +1,2791 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeSense — AI-Powered Code Reviewer</title>
+  <meta name="description"
+    content="CodeSense: Intelligent code review powered by AI. Analyze bugs, security vulnerabilities, performance issues, and code style instantly." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- highlight.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/rust.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+
+  <style>
+    /* ============ CSS RESET & VARIABLES ============ */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* Dark Theme (default) */
+      --bg-primary: #0D1117;
+      --bg-secondary: #161B22;
+      --bg-tertiary: #21262D;
+      --bg-card: #1C2128;
+      --bg-hover: #292E36;
+      --bg-input: #0D1117;
+      --border-color: #30363D;
+      --border-focus: #06B6D4;
+      --text-primary: #E6EDF3;
+      --text-secondary: #8B949E;
+      --text-muted: #6E7681;
+      --accent: #06B6D4;
+      --accent-hover: #22D3EE;
+      --accent-glow: rgba(6, 182, 212, 0.15);
+      --accent-subtle: rgba(6, 182, 212, 0.08);
+      --severity-critical: #EF4444;
+      --severity-high: #F97316;
+      --severity-medium: #EAB308;
+      --severity-low: #3B82F6;
+      --severity-info: #6B7280;
+      --grade-a: #22C55E;
+      --grade-b: #3B82F6;
+      --grade-c: #EAB308;
+      --grade-d: #F97316;
+      --grade-f: #EF4444;
+      --success: #22C55E;
+      --warning: #EAB308;
+      --error: #EF4444;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 20px rgba(6, 182, 212, 0.1);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --transition: 0.2s ease;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #F6F8FA;
+      --bg-secondary: #FFFFFF;
+      --bg-tertiary: #F0F2F5;
+      --bg-card: #FFFFFF;
+      --bg-hover: #F0F2F5;
+      --bg-input: #FFFFFF;
+      --border-color: #D0D7DE;
+      --border-focus: #0891B2;
+      --text-primary: #1F2937;
+      --text-secondary: #57606A;
+      --text-muted: #8B949E;
+      --accent: #0891B2;
+      --accent-hover: #06B6D4;
+      --accent-glow: rgba(8, 145, 178, 0.1);
+      --accent-subtle: rgba(8, 145, 178, 0.05);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+      --shadow-glow: 0 0 20px rgba(8, 145, 178, 0.08);
+    }
+
+    /* ============ GLOBAL STYLES ============ */
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ============ SCROLLBAR ============ */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* ============ NAVBAR ============ */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 60px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(12px);
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .navbar-brand svg {
+      color: var(--accent);
+    }
+
+    .navbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ============ BUTTONS ============ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--text-muted);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0D1117;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-color: transparent;
+      color: var(--text-secondary);
+    }
+
+    .btn-ghost:hover {
+      background: var(--accent-subtle);
+      color: var(--accent);
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+    }
+
+    .btn-icon {
+      padding: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-icon:hover {
+      background: var(--accent-subtle);
+      color: var(--accent);
+    }
+
+    /* ============ MAIN LAYOUT ============ */
+    .main-container {
+      display: grid;
+      grid-template-columns: 2fr 3fr;
+      gap: 0;
+      height: calc(100vh - 60px);
+    }
+
+    .panel {
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .panel-left {
+      border-right: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+
+    .panel-right {
+      background: var(--bg-primary);
+    }
+
+    /* ============ SECTIONS ============ */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .section-title svg {
+      color: var(--accent);
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ============ FORM CONTROLS ============ */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: border-color var(--transition);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238B949E' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .form-select:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* ============ CODE EDITOR ============ */
+    .editor-wrapper {
+      position: relative;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: border-color var(--transition);
+    }
+
+    .editor-wrapper:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .editor-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .editor-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .editor-dot:nth-child(1) {
+      background: #EF4444;
+    }
+
+    .editor-dot:nth-child(2) {
+      background: #EAB308;
+    }
+
+    .editor-dot:nth-child(3) {
+      background: #22C55E;
+    }
+
+    #codeInput {
+      width: 100%;
+      min-height: 300px;
+      padding: 16px;
+      background: var(--bg-input);
+      border: none;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      line-height: 1.7;
+      resize: vertical;
+      tab-size: 2;
+    }
+
+    #codeInput:focus {
+      outline: none;
+    }
+
+    #codeInput::placeholder {
+      color: var(--text-muted);
+    }
+
+    .editor-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border-color);
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+    }
+
+    .char-count {
+      font-family: var(--font-mono);
+    }
+
+    .char-count.warning {
+      color: var(--warning);
+    }
+
+    .char-count.error {
+      color: var(--error);
+    }
+
+    /* ============ ACTION BAR ============ */
+    .action-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .action-bar .btn-primary {
+      flex: 1;
+      justify-content: center;
+      min-width: 140px;
+    }
+
+    /* ============ LOADING / SCAN EFFECT ============ */
+    .scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .scanning .scan-line {
+      opacity: 1;
+      animation: scanDown 2s ease-in-out infinite;
+    }
+
+    @keyframes scanDown {
+      0% {
+        top: 0;
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        top: calc(100% - 3px);
+        opacity: 0;
+      }
+    }
+
+    .scanning #codeInput {
+      opacity: 0.6;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ============ RESULTS ============ */
+    .results-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      color: var(--text-muted);
+      gap: 16px;
+      padding: 40px;
+    }
+
+    .results-placeholder svg {
+      width: 80px;
+      height: 80px;
+      opacity: 0.3;
+      color: var(--accent);
+    }
+
+    .results-placeholder h3 {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+    }
+
+    .results-placeholder p {
+      font-size: 0.875rem;
+      max-width: 320px;
+    }
+
+    /* Scorecard */
+    .scorecard {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s ease forwards;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .score-circle {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      flex-shrink: 0;
+    }
+
+    .score-circle svg {
+      width: 110px;
+      height: 110px;
+      transform: rotate(-90deg);
+    }
+
+    .score-circle-bg {
+      fill: none;
+      stroke: var(--bg-tertiary);
+      stroke-width: 8;
+    }
+
+    .score-circle-fill {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s ease;
+    }
+
+    .score-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+    }
+
+    .score-max {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .scorecard-info {
+      flex: 1;
+    }
+
+    .grade-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      font-weight: 800;
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+    }
+
+    .scorecard-summary {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Radar Chart */
+    .radar-section {
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s ease forwards;
+      animation-delay: 0.1s;
+      opacity: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .radar-container {
+      display: flex;
+      justify-content: center;
+      padding: 16px 0;
+    }
+
+    #radarChart {
+      max-width: 100%;
+    }
+
+    /* Issues */
+    .issues-section {
+      animation: fadeInUp 0.5s ease forwards;
+      animation-delay: 0.2s;
+      opacity: 0;
+      margin-bottom: 20px;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .filter-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border-color);
+      margin: 0 4px;
+    }
+
+    .filter-btn {
+      padding: 4px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .filter-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0D1117;
+    }
+
+    .sort-select {
+      margin-left: auto;
+      padding: 4px 8px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 0.6875rem;
+      font-family: var(--font-sans);
+    }
+
+    .issue-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 10px;
+      transition: all var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .issue-card:hover {
+      border-color: var(--text-muted);
+      box-shadow: var(--shadow-md);
+    }
+
+    .issue-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-critical {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--severity-critical);
+    }
+
+    .badge-high {
+      background: rgba(249, 115, 22, 0.15);
+      color: var(--severity-high);
+    }
+
+    .badge-medium {
+      background: rgba(234, 179, 8, 0.15);
+      color: var(--severity-medium);
+    }
+
+    .badge-low {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--severity-low);
+    }
+
+    .badge-info {
+      background: rgba(107, 114, 128, 0.15);
+      color: var(--severity-info);
+    }
+
+    .badge-type {
+      background: var(--accent-subtle);
+      color: var(--accent);
+    }
+
+    .badge-line {
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+    }
+
+    .issue-title {
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-left: auto;
+      flex: 1;
+    }
+
+    .issue-desc {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .issue-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+      border: none;
+      background: none;
+      color: var(--accent);
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color var(--transition);
+    }
+
+    .issue-toggle:hover {
+      color: var(--accent-hover);
+    }
+
+    .issue-toggle svg {
+      width: 14px;
+      height: 14px;
+      transition: transform var(--transition);
+    }
+
+    .issue-toggle.open svg {
+      transform: rotate(90deg);
+    }
+
+    .issue-suggestion {
+      display: none;
+      margin-top: 10px;
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+    }
+
+    .issue-suggestion.visible {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .issue-suggestion p {
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .issue-suggestion pre {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 0.75rem;
+    }
+
+    .issue-suggestion pre code {
+      font-family: var(--font-mono);
+    }
+
+    /* Strengths */
+    .strengths-section {
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s ease forwards;
+      animation-delay: 0.3s;
+      opacity: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .strength-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+    }
+
+    .strength-item svg {
+      width: 18px;
+      height: 18px;
+      color: var(--success);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Share Bar */
+    .share-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.5s ease forwards;
+      animation-delay: 0.4s;
+      opacity: 0;
+    }
+
+    /* ============ HISTORY ============ */
+    .history-section {
+      margin-top: 24px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 20px;
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-size: 0.75rem;
+    }
+
+    .history-item:hover {
+      border-color: var(--accent);
+      background: var(--accent-subtle);
+    }
+
+    .history-score {
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      min-width: 32px;
+    }
+
+    .history-meta {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .history-snippet {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-info {
+      display: flex;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 0.6875rem;
+    }
+
+    .history-delete {
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .history-item:hover .history-delete {
+      opacity: 1;
+    }
+
+    /* ============ DIFF VIEW ============ */
+    .diff-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .diff-modal-overlay.visible {
+      display: flex;
+    }
+
+    .diff-modal {
+      width: 100%;
+      max-width: 1200px;
+      max-height: 80vh;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .diff-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .diff-modal-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .diff-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: auto;
+      flex: 1;
+    }
+
+    .diff-pane {
+      padding: 0;
+      overflow: auto;
+    }
+
+    .diff-pane:first-child {
+      border-right: 1px solid var(--border-color);
+    }
+
+    .diff-pane-header {
+      padding: 8px 16px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .diff-pane pre {
+      padding: 16px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      line-height: 1.7;
+      margin: 0;
+      background: transparent;
+    }
+
+    /* ============ SETTINGS MODAL ============ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      animation: fadeInUp 0.3s ease;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-body .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      transition: border-color var(--transition);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .modal-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    /* ============ TOAST ============ */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 300;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 8px;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 0.8125rem;
+      animation: slideInRight 0.3s ease;
+      max-width: 360px;
+    }
+
+    .toast-success {
+      border-left: 3px solid var(--success);
+    }
+
+    .toast-error {
+      border-left: 3px solid var(--error);
+    }
+
+    .toast-info {
+      border-left: 3px solid var(--accent);
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* ============ ANIMATIONS ============ */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 900px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+
+      .panel-left {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .scorecard {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .diff-body {
+        grid-template-columns: 1fr;
+      }
+
+      .diff-pane:first-child {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .navbar {
+        padding: 0 12px;
+      }
+    }
+
+    /* ============ PRINT STYLES ============ */
+    @media print {
+
+      .navbar,
+      .panel-left,
+      .share-bar,
+      .filter-bar,
+      .sort-select,
+      .action-bar,
+      .history-section,
+      .btn,
+      .modal-overlay,
+      .diff-modal-overlay,
+      .toast-container {
+        display: none !important;
+      }
+
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-right {
+        padding: 0;
+      }
+
+      .scorecard,
+      .radar-section,
+      .issues-section,
+      .strengths-section,
+      .issue-card {
+        break-inside: avoid;
+        animation: none !important;
+        opacity: 1 !important;
+      }
+
+      body {
+        background: #fff;
+        color: #1a1a1a;
+      }
+
+      .scorecard,
+      .radar-section,
+      .strengths-section,
+      .issue-card {
+        border: 1px solid #ccc;
+        background: #fff;
+      }
+
+      .issue-suggestion {
+        display: block !important;
+      }
+    }
+
+    /* Shortcut hint */
+    .shortcut-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 1px 5px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+    }
+
+    /* Tab-like nav for mobile switching */
+    .panel-tabs {
+      display: none;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+
+    @media (max-width: 900px) {
+      .panel-tabs {
+        display: flex;
+      }
+
+      .panel-tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all var(--transition);
+        background: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        font-family: var(--font-sans);
+      }
+
+      .panel-tab.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+    }
+
+    /* Empty issue state */
+    .issues-empty {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+
+<body data-theme="dark">
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="navbar-brand">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="16 18 22 12 16 6"></polyline>
+        <polyline points="8 6 2 12 8 18"></polyline>
+        <line x1="12" y1="2" x2="12" y2="22" opacity="0.3"></line>
+      </svg>
+      CodeSense
+    </a>
+    <div class="navbar-actions">
+      <button class="btn-icon" onclick="openSettings()" title="Settings" id="settingsBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MOBILE TABS -->
+  <div class="panel-tabs">
+    <button class="panel-tab active" onclick="switchTab('input')">Input</button>
+    <button class="panel-tab" onclick="switchTab('result')">Result</button>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="main-container" id="mainContainer">
+
+    <!-- LEFT: INPUT PANEL -->
+    <div class="panel panel-left" id="panelLeft">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6" />
+          <polyline points="8 6 2 12 8 18" />
+        </svg>
+        Input Kode
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="langSelect">Bahasa</label>
+          <select class="form-select" id="langSelect">
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="typescript">TypeScript</option>
+            <option value="java">Java</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="php">PHP</option>
+            <option value="cpp">C++</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reviewType">Jenis Review</label>
+          <select class="form-select" id="reviewType">
+            <option value="full">Full Review</option>
+            <option value="bug">Bug Hunt</option>
+            <option value="security">Security Audit</option>
+            <option value="performance">Performance</option>
+            <option value="style">Code Style</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="reviewerLevel">Experience Level Reviewer</label>
+        <select class="form-select" id="reviewerLevel">
+          <option value="junior">Junior Engineer</option>
+          <option value="senior" selected>Senior Engineer</option>
+          <option value="principal">Principal Engineer</option>
+        </select>
+      </div>
+
+      <div class="editor-wrapper" id="editorWrapper">
+        <div class="scan-line"></div>
+        <div class="editor-header">
+          <div class="editor-dots">
+            <span class="editor-dot"></span>
+            <span class="editor-dot"></span>
+            <span class="editor-dot"></span>
+          </div>
+          <span id="langLabel">javascript</span>
+        </div>
+        <textarea id="codeInput"
+          placeholder="// Paste your code here...&#10;// Atau klik 'Contoh Kode' untuk memuat sample" spellcheck="false"
+          maxlength="10000"></textarea>
+        <div class="editor-footer">
+          <span class="char-count" id="charCount">0 / 10,000</span>
+          <span class="shortcut-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> untuk review</span>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn-primary btn" id="reviewBtn" onclick="startReview()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          Review Kode
+        </button>
+        <button class="btn" onclick="loadSampleCode()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          Contoh Kode
+        </button>
+        <button class="btn" onclick="formatCode()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="21" y1="10" x2="3" y2="10" />
+            <line x1="21" y1="6" x2="3" y2="6" />
+            <line x1="21" y1="14" x2="3" y2="14" />
+            <line x1="21" y1="18" x2="3" y2="18" />
+          </svg>
+          Format Kode
+        </button>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="history-section" id="historySection">
+        <div class="history-header">
+          <div class="section-title" style="margin-bottom:0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            Riwayat Review
+          </div>
+          <button class="btn btn-sm btn-ghost" onclick="clearHistory()" id="clearHistoryBtn">Hapus Semua</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS PANEL -->
+    <div class="panel panel-right" id="panelRight">
+      <div id="resultsArea">
+        <div class="results-placeholder" id="placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="9" y1="15" x2="15" y2="15" />
+            <line x1="9" y1="11" x2="15" y2="11" />
+            <line x1="9" y1="19" x2="13" y2="19" />
+          </svg>
+          <h3>Belum Ada Review</h3>
+          <p>Tempel kode di panel kiri, pilih opsi review, lalu klik <strong>Review Kode</strong> untuk memulai analisis
+            AI.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>⚙️ Pengaturan</h3>
+        <button class="btn-icon" onclick="closeSettings()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="apiKeyInput">Anthropic API Key</label>
+          <input type="password" class="form-input" id="apiKeyInput" placeholder="sk-ant-..." />
+          <div style="font-size:0.6875rem; color:var(--text-muted); margin-top:4px;">Key disimpan di localStorage
+            browser Anda.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="themeSelect">Tema</label>
+          <select class="form-select" id="themeSelect" onchange="applyTheme(this.value)">
+            <option value="dark">🌙 Dark</option>
+            <option value="light">☀️ Light</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeSettings()">Batal</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIFF MODAL -->
+  <div class="diff-modal-overlay" id="diffModal">
+    <div class="diff-modal">
+      <div class="diff-modal-header">
+        <h3>📝 Diff View — Original vs Fixed</h3>
+        <button class="btn-icon" onclick="closeDiff()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="diff-body">
+        <div class="diff-pane">
+          <div class="diff-pane-header">❌ Original</div>
+          <pre><code id="diffOriginal"></code></pre>
+        </div>
+        <div class="diff-pane">
+          <div class="diff-pane-header">✅ Fixed</div>
+          <pre><code id="diffFixed"></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    /* ============ STATE ============ */
+    let currentReview = null;
+    let currentCode = '';
+    let isReviewing = false;
+
+    /* ============ INIT ============ */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load settings
+      const savedKey = localStorage.getItem('cs_api_key');
+      if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+
+      const savedTheme = localStorage.getItem('cs_theme') || 'dark';
+      document.body.setAttribute('data-theme', savedTheme);
+      document.getElementById('themeSelect').value = savedTheme;
+
+      // Char count
+      const codeInput = document.getElementById('codeInput');
+      codeInput.addEventListener('input', updateCharCount);
+
+      // Lang label sync
+      document.getElementById('langSelect').addEventListener('change', e => {
+        document.getElementById('langLabel').textContent = e.target.value;
+      });
+
+      // Keyboard shortcut
+      document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          startReview();
+        }
+        if (e.key === 'Escape') {
+          closeSettings();
+          closeDiff();
+        }
+      });
+
+      // Tab support in textarea
+      codeInput.addEventListener('keydown', e => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = codeInput.selectionStart;
+          const end = codeInput.selectionEnd;
+          codeInput.value = codeInput.value.substring(0, start) + '  ' + codeInput.value.substring(end);
+          codeInput.selectionStart = codeInput.selectionEnd = start + 2;
+          updateCharCount();
+        }
+      });
+
+      renderHistory();
+      updateCharCount();
+    });
+
+    /* ============ CHAR COUNT ============ */
+    function updateCharCount() {
+      const el = document.getElementById('charCount');
+      const len = document.getElementById('codeInput').value.length;
+      el.textContent = `${len.toLocaleString()} / 10,000`;
+      el.className = 'char-count' + (len > 9000 ? ' error' : len > 7500 ? ' warning' : '');
+    }
+
+    /* ============ THEME ============ */
+    function applyTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      localStorage.setItem('cs_theme', theme);
+    }
+
+    /* ============ SETTINGS ============ */
+    function openSettings() {
+      document.getElementById('settingsModal').classList.add('visible');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.remove('visible');
+    }
+
+    function saveSettings() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (key) localStorage.setItem('cs_api_key', key);
+      else localStorage.removeItem('cs_api_key');
+      localStorage.setItem('cs_theme', document.getElementById('themeSelect').value);
+      closeSettings();
+      showToast('Pengaturan tersimpan!', 'success');
+    }
+
+    /* ============ SAMPLE CODE ============ */
+    const SAMPLE_CODES = {
+      javascript: `// User Authentication Handler
+function authenticateUser(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
+  
+  // SQL query to check user credentials
+  const query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.log(err);
+      res.send("Error occurred");
+      return;
+    }
+    
+    if (results.length > 0) {
+      // Set session
+      req.session.user = results[0];
+      req.session.isAdmin = results[0].role == "admin";
+      
+      // Generate token
+      var token = Math.random().toString(36).substring(7);
+      res.json({ token: token, user: results[0] });
+    } else {
+      res.status(401).send("Invalid credentials");
+    }
+  });
+}
+
+// Rate limiter (broken implementation)
+let requestCounts = {};
+function rateLimit(ip) {
+  if (!requestCounts[ip]) {
+    requestCounts[ip] = 1;
+  }
+  requestCounts[ip]++;
+  
+  if (requestCounts[ip] > 100) {
+    return false;
+  }
+  return true;
+}
+
+// Password hashing
+function hashPassword(password) {
+  const crypto = require('crypto');
+  return crypto.createHash('md5').update(password).digest('hex');
+}`,
+      python: `# Data Processing Pipeline
+import pickle
+import os
+
+class DataProcessor:
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.data = []
+        self.processed = False
+    
+    def load_data(self):
+        # Load data from file
+        with open(self.filepath) as f:
+            for line in f.readlines():
+                self.data.append(eval(line.strip()))
+        return self.data
+    
+    def process(self, filter_func=None):
+        results = []
+        for i in range(len(self.data)):
+            item = self.data[i]
+            if filter_func:
+                if filter_func(item) == True:
+                    results.append(self.transform(item))
+            else:
+                results.append(self.transform(item))
+        
+        self.processed = True
+        return results
+    
+    def transform(self, item):
+        try:
+            result = {
+                'name': item['name'],
+                'value': item['price'] * item['quantity'],
+                'category': item['cat']
+            }
+        except:
+            result = None
+        return result
+    
+    def save_results(self, results, output_path):
+        # Serialize results
+        with open(output_path, 'wb') as f:
+            pickle.dump(results, f)
+    
+    def execute_command(self, cmd):
+        """Run system command for data export"""
+        os.system(cmd)
+    
+    def get_stats(self):
+        total = 0
+        count = 0
+        for item in self.data:
+            total = total + item['price']
+            count = count + 1
+        average = total / count
+        return {'total': total, 'count': count, 'average': average}`,
+      typescript: `// API Service with caching
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: any;
+}
+
+class ApiService {
+  private cache: any = {};
+  private baseUrl: string;
+  
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+  
+  async fetchUser(id: number): Promise<User> {
+    if (this.cache[id]) {
+      return this.cache[id];
+    }
+    
+    const response = await fetch(this.baseUrl + '/users/' + id);
+    const data: any = await response.json();
+    
+    this.cache[id] = data;
+    return data;
+  }
+  
+  async fetchAllUsers(): Promise<User[]> {
+    const response = await fetch(this.baseUrl + '/users');
+    const users: any = await response.json();
+    
+    // Sort users by name
+    for (let i = 0; i < users.length; i++) {
+      for (let j = 0; j < users.length - 1; j++) {
+        if (users[j].name > users[j + 1].name) {
+          let temp = users[j];
+          users[j] = users[j + 1];
+          users[j + 1] = temp;
+        }
+      }
+    }
+    
+    return users;
+  }
+  
+  async deleteUser(id: number): Promise<void> {
+    await fetch(this.baseUrl + '/users/' + id, { method: 'DELETE' });
+    // Forgot to invalidate cache
+  }
+  
+  async updateUser(id: number, data: any): Promise<User> {
+    const response = await fetch(this.baseUrl + '/users/' + id, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    return response.json() as any;
+  }
+  
+  clearCache() {
+    this.cache = {};
+  }
+}`,
+      java: `// Order Processing Service
+import java.util.*;
+
+public class OrderService {
+    private List<Map<String, Object>> orders = new ArrayList<>();
+    private static OrderService instance;
+    
+    public static OrderService getInstance() {
+        if (instance == null) {
+            instance = new OrderService();
+        }
+        return instance;
+    }
+    
+    public void processOrder(Map<String, Object> order) {
+        double total = 0;
+        List<Map<String, Object>> items = (List) order.get("items");
+        
+        for (int i = 0; i < items.size(); i++) {
+            Map<String, Object> item = items.get(i);
+            double price = (double) item.get("price");
+            int qty = (int) item.get("quantity");
+            total = total + (price * qty);
+        }
+        
+        if (total > 0) {
+            order.put("total", total);
+            order.put("status", "processed");
+            orders.add(order);
+            
+            // Send notification
+            System.out.println("Order processed: " + total);
+        }
+    }
+    
+    public Map<String, Object> findOrder(String orderId) {
+        for (Map<String, Object> order : orders) {
+            if (order.get("id").equals(orderId)) {
+                return order;
+            }
+        }
+        return null;
+    }
+    
+    public double calculateDiscount(double total, String code) {
+        if (code == "SAVE10") {
+            return total * 0.10;
+        } else if (code == "SAVE20") {
+            return total * 0.20;
+        }
+        return 0;
+    }
+}`,
+      go: `package main
+
+import (
+	"fmt"
+	"net/http"
+	"database/sql"
+	"encoding/json"
+	"os"
+)
+
+var db *sql.DB
+
+func getUser(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	
+	query := fmt.Sprintf("SELECT * FROM users WHERE id = %s", id)
+	row := db.QueryRow(query)
+	
+	var user struct {
+		ID    int
+		Name  string
+		Email string
+	}
+	
+	err := row.Scan(&user.ID, &user.Name, &user.Email)
+	if err != nil {
+		w.Write([]byte("error"))
+		return
+	}
+	
+	json.NewEncoder(w).Encode(user)
+}
+
+func uploadFile(w http.ResponseWriter, r *http.Request) {
+	file, header, _ := r.FormFile("file")
+	defer file.Close()
+	
+	dst, _ := os.Create("/uploads/" + header.Filename)
+	defer dst.Close()
+	
+	fmt.Fprintf(w, "Uploaded: %s", header.Filename)
+}
+
+func main() {
+	http.HandleFunc("/user", getUser)
+	http.HandleFunc("/upload", uploadFile)
+	http.ListenAndServe(":8080", nil)
+}`,
+      rust: `use std::collections::HashMap;
+
+struct Cache {
+    data: HashMap<String, String>,
+    max_size: usize,
+}
+
+impl Cache {
+    fn new(max_size: usize) -> Self {
+        Cache {
+            data: HashMap::new(),
+            max_size,
+        }
+    }
+    
+    fn get(&self, key: &str) -> Option<String> {
+        match self.data.get(key) {
+            Some(val) => Some(val.clone()),
+            None => None,
+        }
+    }
+    
+    fn set(&mut self, key: String, value: String) {
+        if self.data.len() >= self.max_size {
+            // Remove first item (not actually LRU)
+            let first_key = self.data.keys().next().unwrap().clone();
+            self.data.remove(&first_key);
+        }
+        self.data.insert(key, value);
+    }
+    
+    fn delete(&mut self, key: &str) -> bool {
+        self.data.remove(key).is_some()
+    }
+}
+
+fn process_data(input: &str) -> Vec<i32> {
+    let mut results = Vec::new();
+    let parts: Vec<&str> = input.split(",").collect();
+    
+    for part in parts {
+        let num: i32 = part.trim().parse().unwrap();
+        results.push(num * 2);
+    }
+    
+    results
+}`,
+      php: `<?php
+class UserController {
+    private $db;
+    
+    public function __construct() {
+        $this->db = new PDO("mysql:host=localhost;dbname=app", "root", "");
+    }
+    
+    public function login() {
+        $username = $_POST['username'];
+        $password = $_POST['password'];
+        
+        $sql = "SELECT * FROM users WHERE username='$username' AND password='$password'";
+        $result = $this->db->query($sql);
+        $user = $result->fetch();
+        
+        if ($user) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['role'] = $user['role'];
+            echo json_encode(['status' => 'success', 'user' => $user]);
+        } else {
+            echo json_encode(['status' => 'error']);
+        }
+    }
+    
+    public function getProfile() {
+        $id = $_GET['id'];
+        $sql = "SELECT * FROM users WHERE id = $id";
+        $result = $this->db->query($sql);
+        $user = $result->fetch();
+        
+        include 'templates/profile.php';
+    }
+    
+    public function uploadAvatar() {
+        $target = "uploads/" . $_FILES["avatar"]["name"];
+        move_uploaded_file($_FILES["avatar"]["tmp_name"], $target);
+        echo "File uploaded: " . $_FILES["avatar"]["name"];
+    }
+}
+?>`,
+      cpp: `#include <iostream>
+#include <vector>
+#include <cstring>
+
+class Buffer {
+    char* data;
+    int size;
+    int capacity;
+    
+public:
+    Buffer(int cap) {
+        capacity = cap;
+        data = new char[capacity];
+        size = 0;
+    }
+    
+    void append(const char* str) {
+        int len = strlen(str);
+        // No bounds checking
+        memcpy(data + size, str, len);
+        size += len;
+    }
+    
+    char* getData() { return data; }
+    
+    void resize(int newCap) {
+        char* newData = new char[newCap];
+        memcpy(newData, data, size);
+        // Memory leak: old data not freed
+        data = newData;
+        capacity = newCap;
+    }
+    
+    // Missing destructor - memory leak
+    // Missing copy constructor - shallow copy issues
+};
+
+int* createArray(int n) {
+    int arr[n]; // VLA - not standard C++
+    for (int i = 0; i <= n; i++) { // Off-by-one
+        arr[i] = i * 2;
+    }
+    return arr; // Returning pointer to local!
+}
+
+void processInput(char* input) {
+    char buffer[64];
+    strcpy(buffer, input); // Buffer overflow
+    printf("Processed: %s\\n", buffer);
+}`
+    };
+
+    function loadSampleCode() {
+      const lang = document.getElementById('langSelect').value;
+      document.getElementById('codeInput').value = SAMPLE_CODES[lang] || SAMPLE_CODES.javascript;
+      updateCharCount();
+      showToast('Contoh kode dimuat!', 'info');
+    }
+
+    /* ============ FORMAT CODE (AI) ============ */
+    async function formatCode() {
+      const code = document.getElementById('codeInput').value.trim();
+      if (!code) { showToast('Masukkan kode terlebih dahulu', 'error'); return; }
+
+      const apiKey = localStorage.getItem('cs_api_key');
+      if (!apiKey) { showToast('Set API key di Settings terlebih dahulu', 'error'); openSettings(); return; }
+
+      showToast('Memformat kode...', 'info');
+
+      try {
+        const lang = document.getElementById('langSelect').value;
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 8000,
+            messages: [{
+              role: 'user',
+              content: `Format the following ${lang} code properly with consistent indentation (2 spaces), proper spacing, and line breaks. Return ONLY the formatted code, nothing else. No explanation, no markdown fences.\n\n${code}`
+            }]
+          })
+        });
+
+        if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+        const data = await resp.json();
+        const formatted = data.content[0].text;
+        document.getElementById('codeInput').value = formatted;
+        updateCharCount();
+        showToast('Kode berhasil diformat!', 'success');
+      } catch (err) {
+        showToast('Gagal memformat: ' + err.message, 'error');
+      }
+    }
+
+    /* ============ REVIEW ENGINE ============ */
+    async function startReview() {
+      if (isReviewing) return;
+
+      const code = document.getElementById('codeInput').value.trim();
+      if (!code) { showToast('Masukkan kode terlebih dahulu', 'error'); return; }
+
+      const apiKey = localStorage.getItem('cs_api_key');
+      if (!apiKey) { showToast('Set API key di Settings terlebih dahulu', 'error'); openSettings(); return; }
+
+      const lang = document.getElementById('langSelect').value;
+      const reviewType = document.getElementById('reviewType').value;
+      const level = document.getElementById('reviewerLevel').value;
+      currentCode = code;
+
+      const reviewTypeMap = {
+        full: 'Full Review (bug, style, performance, security)',
+        bug: 'Bug Hunt (fokus error dan logic flaw)',
+        security: 'Security Audit (fokus vulnerability)',
+        performance: 'Performance Review (fokus optimasi)',
+        style: 'Code Style Review (fokus readability dan best practice)'
+      };
+
+      const levelMap = {
+        junior: 'junior engineer — fokus pada bug yang jelas dan best practice dasar',
+        senior: 'senior engineer — analisis mendalam termasuk edge cases, design patterns, dan scalability',
+        principal: 'principal/staff engineer — analisis arsitektural, trade-offs, long-term maintainability, dan implikasi system-wide'
+      };
+
+      setReviewLoading(true);
+
+      const systemPrompt = `Kamu adalah ${levelMap[level]} yang melakukan code review.
+Jenis review: ${reviewTypeMap[reviewType]}.
+Bahasa: ${lang}.
+
+Analisis kode yang diberikan dan kembalikan HANYA JSON valid (tanpa markdown fences, tanpa teks tambahan) dengan struktur berikut:
+{
+  "overall_score": <number 0-100>,
+  "grade": "<A|B|C|D|F>",
+  "summary": "<ringkasan 2-3 kalimat tentang kualitas kode>",
+  "issues": [
+    {
+      "id": <number>,
+      "type": "<bug|security|performance|style|logic>",
+      "severity": "<critical|high|medium|low|info>",
+      "line": <nomor baris atau null>,
+      "title": "<judul singkat masalah>",
+      "description": "<penjelasan detail masalah>",
+      "suggestion": "<cara perbaikan>",
+      "code_fix": "<contoh kode yang diperbaiki atau null>"
+    }
+  ],
+  "strengths": ["<hal baik 1>", "<hal baik 2>"],
+  "metrics": {
+    "complexity": <0-10>,
+    "maintainability": <0-10>,
+    "readability": <0-10>,
+    "security": <0-10>,
+    "performance": <0-10>
+  }
+}
+
+Pastikan:
+- Setiap issue punya penjelasan yang jelas dan actionable
+- Score mencerminkan kualitas sebenarnya
+- Issues diurutkan dari severity tertinggi ke terendah
+- code_fix berisi potongan kode yang relevan (bukan seluruh file)`;
+
+      try {
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-opus-4-20250514',
+            max_tokens: 16000,
+            thinking: { type: 'enabled', budget_tokens: 12000 },
+            messages: [{
+              role: 'user',
+              content: `Review kode berikut:\n\n\`\`\`${lang}\n${code}\n\`\`\``
+            }],
+            system: systemPrompt
+          })
+        });
+
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `API error: ${resp.status}`);
+        }
+
+        const data = await resp.json();
+
+        // Extract text content (skip thinking blocks)
+        let textContent = '';
+        for (const block of data.content) {
+          if (block.type === 'text') {
+            textContent = block.text;
+            break;
+          }
+        }
+
+        // Parse JSON from response
+        let review;
+        try {
+          // Try direct parse first
+          review = JSON.parse(textContent);
+        } catch {
+          // Try extracting JSON from possible markdown
+          const jsonMatch = textContent.match(/```(?:json)?\s*([\s\S]*?)```/) || textContent.match(/(\{[\s\S]*\})/);
+          if (jsonMatch) {
+            review = JSON.parse(jsonMatch[1]);
+          } else {
+            throw new Error('Tidak dapat memparse respons AI sebagai JSON');
+          }
+        }
+
+        currentReview = review;
+        renderResults(review);
+        saveToHistory(review, code, lang);
+        showToast('Review selesai!', 'success');
+
+      } catch (err) {
+        showToast('Review gagal: ' + err.message, 'error');
+        console.error('Review error:', err);
+      } finally {
+        setReviewLoading(false);
+      }
+    }
+
+    function setReviewLoading(loading) {
+      isReviewing = loading;
+      const btn = document.getElementById('reviewBtn');
+      const wrapper = document.getElementById('editorWrapper');
+
+      if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Menganalisis...';
+        wrapper.classList.add('scanning');
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Review Kode`;
+        wrapper.classList.remove('scanning');
+      }
+    }
+
+    /* ============ RENDER RESULTS ============ */
+    function renderResults(review) {
+      const area = document.getElementById('resultsArea');
+
+      const gradeColor = {
+        A: 'var(--grade-a)', B: 'var(--grade-b)', C: 'var(--grade-c)',
+        D: 'var(--grade-d)', F: 'var(--grade-f)'
+      }[review.grade] || 'var(--text-muted)';
+
+      const circumference = 2 * Math.PI * 45;
+      const offset = circumference - (review.overall_score / 100) * circumference;
+
+      // Count issues by severity
+      const sevCounts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+      const typeCounts = { bug: 0, security: 0, performance: 0, style: 0, logic: 0 };
+      (review.issues || []).forEach(i => {
+        sevCounts[i.severity] = (sevCounts[i.severity] || 0) + 1;
+        typeCounts[i.type] = (typeCounts[i.type] || 0) + 1;
+      });
+
+      // Check if all issues have code_fix
+      const allHaveFixes = review.issues && review.issues.length > 0 && review.issues.every(i => i.code_fix);
+
+      area.innerHTML = `
+        <!-- SCORECARD -->
+        <div class="scorecard">
+          <div class="score-circle">
+            <svg viewBox="0 0 100 100">
+              <circle class="score-circle-bg" cx="50" cy="50" r="45"/>
+              <circle class="score-circle-fill" cx="50" cy="50" r="45"
+                stroke="${gradeColor}"
+                stroke-dasharray="${circumference}"
+                stroke-dashoffset="${offset}"/>
+            </svg>
+            <div class="score-value" style="color:${gradeColor}">${review.overall_score}<span class="score-max">/100</span></div>
+          </div>
+          <div class="scorecard-info">
+            <div class="grade-badge" style="background:${gradeColor}22;color:${gradeColor}">${review.grade}</div>
+            <p class="scorecard-summary">${review.summary}</p>
+          </div>
+        </div>
+
+        <!-- RADAR CHART -->
+        <div class="radar-section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/></svg>
+            Metrik Kualitas
+          </div>
+          <div class="radar-container">
+            <canvas id="radarChart" width="320" height="320"></canvas>
+          </div>
+        </div>
+
+        <!-- SHARE BAR -->
+        <div class="share-bar">
+          <button class="btn" onclick="copyReport()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy Report
+          </button>
+          <button class="btn" onclick="exportPDF()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Export PDF
+          </button>
+          ${allHaveFixes ? `<button class="btn" onclick="openDiff()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"/><path d="M18 9l-6-6-6 6"/></svg>
+            Lihat Diff
+          </button>` : ''}
+        </div>
+
+        <!-- ISSUES -->
+        <div class="issues-section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Issues (${(review.issues || []).length})
+          </div>
+          <div class="filter-bar" id="filterBar">
+            <div class="filter-group" id="severityFilters">
+              <button class="filter-btn active" onclick="filterIssues('all','severity')">All (${(review.issues || []).length})</button>
+              ${sevCounts.critical ? `<button class="filter-btn" onclick="filterIssues('critical','severity')">Critical (${sevCounts.critical})</button>` : ''}
+              ${sevCounts.high ? `<button class="filter-btn" onclick="filterIssues('high','severity')">High (${sevCounts.high})</button>` : ''}
+              ${sevCounts.medium ? `<button class="filter-btn" onclick="filterIssues('medium','severity')">Medium (${sevCounts.medium})</button>` : ''}
+              ${sevCounts.low ? `<button class="filter-btn" onclick="filterIssues('low','severity')">Low (${sevCounts.low})</button>` : ''}
+              ${sevCounts.info ? `<button class="filter-btn" onclick="filterIssues('info','severity')">Info (${sevCounts.info})</button>` : ''}
+            </div>
+            <div class="filter-divider"></div>
+            <div class="filter-group" id="typeFilters">
+              ${Object.entries(typeCounts).filter(([, c]) => c > 0).map(([t, c]) =>
+        `<button class="filter-btn" onclick="filterIssues('${t}','type')">${t} (${c})</button>`
+      ).join('')}
+            </div>
+            <select class="sort-select" id="sortSelect" onchange="sortIssues(this.value)">
+              <option value="severity">Sort: Severity</option>
+              <option value="type">Sort: Type</option>
+              <option value="line">Sort: Line</option>
+            </select>
+          </div>
+          <div id="issuesList">
+            ${renderIssueCards(review.issues || [])}
+          </div>
+        </div>
+
+        <!-- STRENGTHS -->
+        ${review.strengths && review.strengths.length > 0 ? `
+        <div class="strengths-section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Kelebihan
+          </div>
+          ${review.strengths.map(s => `
+            <div class="strength-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>${s}</span>
+            </div>
+          `).join('')}
+        </div>
+        ` : ''}
+      `;
+
+      // Draw radar chart
+      setTimeout(() => drawRadarChart(review.metrics), 100);
+
+      // Re-highlight code fixes
+      area.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+    }
+
+    function renderIssueCards(issues) {
+      if (!issues || issues.length === 0) return '<div class="issues-empty">Tidak ada issue ditemukan! 🎉</div>';
+
+      const lang = document.getElementById('langSelect').value;
+
+      return issues.map((issue, idx) => `
+        <div class="issue-card" data-severity="${issue.severity}" data-type="${issue.type}" data-line="${issue.line || 999999}">
+          <div class="issue-header">
+            <span class="badge badge-${issue.severity}">${issue.severity}</span>
+            <span class="badge badge-type">${issue.type}</span>
+            ${issue.line ? `<span class="badge badge-line">L${issue.line}</span>` : ''}
+            <span class="issue-title">${issue.title}</span>
+          </div>
+          <p class="issue-desc">${issue.description}</p>
+          <button class="issue-toggle" onclick="toggleSuggestion(this, ${idx})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            Lihat Saran Perbaikan
+          </button>
+          <div class="issue-suggestion" id="suggestion-${idx}">
+            <p><strong>💡 Saran:</strong> ${issue.suggestion}</p>
+            ${issue.code_fix ? `<pre><code class="language-${lang}">${escapeHtml(issue.code_fix)}</code></pre>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function toggleSuggestion(btn, idx) {
+      const suggestion = document.getElementById(`suggestion-${idx}`);
+      btn.classList.toggle('open');
+      suggestion.classList.toggle('visible');
+
+      // Highlight code on first open
+      if (suggestion.classList.contains('visible')) {
+        suggestion.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+      }
+    }
+
+    /* ============ FILTERS & SORT ============ */
+    let activeFilter = { severity: 'all', type: null };
+
+    function filterIssues(value, filterType) {
+      // Update active filter
+      if (filterType === 'severity') {
+        activeFilter.severity = value;
+        activeFilter.type = null;
+        // Update button states
+        document.querySelectorAll('#severityFilters .filter-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        document.querySelectorAll('#typeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+      } else {
+        activeFilter.type = value;
+        activeFilter.severity = 'all';
+        document.querySelectorAll('#severityFilters .filter-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('#severityFilters .filter-btn').classList.add('active');
+        document.querySelectorAll('#typeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+      }
+
+      const cards = document.querySelectorAll('.issue-card');
+      cards.forEach(card => {
+        let show = true;
+        if (activeFilter.severity !== 'all') {
+          show = card.dataset.severity === activeFilter.severity;
+        }
+        if (activeFilter.type) {
+          show = card.dataset.type === activeFilter.type;
+        }
+        card.style.display = show ? '' : 'none';
+      });
+    }
+
+    function sortIssues(by) {
+      const container = document.getElementById('issuesList');
+      const cards = Array.from(container.querySelectorAll('.issue-card'));
+
+      const sevOrder = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
+
+      cards.sort((a, b) => {
+        if (by === 'severity') return (sevOrder[a.dataset.severity] || 5) - (sevOrder[b.dataset.severity] || 5);
+        if (by === 'type') return a.dataset.type.localeCompare(b.dataset.type);
+        if (by === 'line') return parseInt(a.dataset.line) - parseInt(b.dataset.line);
+        return 0;
+      });
+
+      cards.forEach(card => container.appendChild(card));
+    }
+
+    /* ============ RADAR CHART ============ */
+    function drawRadarChart(metrics) {
+      const canvas = document.getElementById('radarChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const size = 320;
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      canvas.style.width = size + 'px';
+      canvas.style.height = size + 'px';
+      ctx.scale(dpr, dpr);
+
+      const cx = size / 2, cy = size / 2, maxR = 120;
+      const labels = ['Complexity', 'Maintainability', 'Readability', 'Security', 'Performance'];
+      const values = [
+        metrics.complexity || 0,
+        metrics.maintainability || 0,
+        metrics.readability || 0,
+        metrics.security || 0,
+        metrics.performance || 0
+      ];
+      const n = labels.length;
+      const angleStep = (2 * Math.PI) / n;
+      const startAngle = -Math.PI / 2;
+
+      // Clear
+      ctx.clearRect(0, 0, size, size);
+
+      // Grid rings
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      for (let ring = 1; ring <= 5; ring++) {
+        const r = (ring / 5) * maxR;
+        ctx.beginPath();
+        for (let i = 0; i <= n; i++) {
+          const angle = startAngle + i * angleStep;
+          const x = cx + r * Math.cos(angle);
+          const y = cy + r * Math.sin(angle);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Axis lines
+      for (let i = 0; i < n; i++) {
+        const angle = startAngle + i * angleStep;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + maxR * Math.cos(angle), cy + maxR * Math.sin(angle));
+        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)';
+        ctx.stroke();
+      }
+
+      // Data polygon
+      ctx.beginPath();
+      for (let i = 0; i <= n; i++) {
+        const idx = i % n;
+        const angle = startAngle + idx * angleStep;
+        const r = (values[idx] / 10) * maxR;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.2)';
+      ctx.fill();
+      ctx.strokeStyle = '#06B6D4';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Data points
+      for (let i = 0; i < n; i++) {
+        const angle = startAngle + i * angleStep;
+        const r = (values[i] / 10) * maxR;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = '#06B6D4';
+        ctx.fill();
+        ctx.strokeStyle = isDark ? '#0D1117' : '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Labels
+      ctx.font = '500 11px Inter, sans-serif';
+      ctx.fillStyle = isDark ? '#8B949E' : '#57606A';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (let i = 0; i < n; i++) {
+        const angle = startAngle + i * angleStep;
+        const lr = maxR + 28;
+        const x = cx + lr * Math.cos(angle);
+        const y = cy + lr * Math.sin(angle);
+
+        // Label text
+        ctx.fillStyle = isDark ? '#8B949E' : '#57606A';
+        ctx.fillText(labels[i], x, y - 7);
+
+        // Value
+        ctx.font = '700 12px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#06B6D4';
+        ctx.fillText(values[i] + '/10', x, y + 8);
+        ctx.font = '500 11px Inter, sans-serif';
+      }
+    }
+
+    /* ============ DIFF VIEW ============ */
+    function openDiff() {
+      if (!currentReview || !currentCode) return;
+
+      const lang = document.getElementById('langSelect').value;
+
+      // Build "fixed" code by applying fixes (simplified: show original and suggested fixes)
+      let fixedCode = currentCode;
+      // We just show the original and concatenate all fixes as conceptual improvement
+      const fixes = currentReview.issues
+        .filter(i => i.code_fix)
+        .map(i => `// FIX for: ${i.title}\n${i.code_fix}`)
+        .join('\n\n');
+
+      document.getElementById('diffOriginal').textContent = currentCode;
+      document.getElementById('diffFixed').textContent = fixes || currentCode;
+
+      // Highlight
+      document.querySelectorAll('#diffModal pre code').forEach(block => {
+        block.className = `language-${lang}`;
+        hljs.highlightElement(block);
+      });
+
+      document.getElementById('diffModal').classList.add('visible');
+    }
+
+    function closeDiff() {
+      document.getElementById('diffModal').classList.remove('visible');
+    }
+
+    /* ============ HISTORY ============ */
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem('cs_history') || '[]'); }
+      catch { return []; }
+    }
+
+    function saveToHistory(review, code, lang) {
+      const history = getHistory();
+      history.unshift({
+        id: Date.now(),
+        lang,
+        score: review.overall_score,
+        grade: review.grade,
+        timestamp: new Date().toISOString(),
+        snippet: code.substring(0, 50),
+        review,
+        code
+      });
+
+      // Keep max 10
+      if (history.length > 10) history.length = 10;
+      localStorage.setItem('cs_history', JSON.stringify(history));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const history = getHistory();
+      const container = document.getElementById('historyList');
+      const section = document.getElementById('historySection');
+
+      if (history.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = '';
+
+      const gradeColor = g => ({
+        A: 'var(--grade-a)', B: 'var(--grade-b)', C: 'var(--grade-c)',
+        D: 'var(--grade-d)', F: 'var(--grade-f)'
+      }[g] || 'var(--text-muted)');
+
+      container.innerHTML = history.map(h => {
+        const d = new Date(h.timestamp);
+        const timeStr = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="history-item" onclick="loadHistory(${h.id})">
+            <span class="history-score" style="color:${gradeColor(h.grade)}">${h.score}</span>
+            <div class="history-meta">
+              <div class="history-info">
+                <span>${h.lang}</span>
+                <span>•</span>
+                <span>${timeStr}</span>
+              </div>
+              <div class="history-snippet">${escapeHtml(h.snippet)}...</div>
+            </div>
+            <button class="btn-icon btn-sm history-delete" onclick="event.stopPropagation();deleteHistory(${h.id})">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function loadHistory(id) {
+      const history = getHistory();
+      const item = history.find(h => h.id === id);
+      if (!item) return;
+
+      document.getElementById('codeInput').value = item.code;
+      document.getElementById('langSelect').value = item.lang;
+      document.getElementById('langLabel').textContent = item.lang;
+      updateCharCount();
+
+      currentReview = item.review;
+      currentCode = item.code;
+      renderResults(item.review);
+      showToast('Review dimuat dari riwayat', 'info');
+
+      // Switch to results tab on mobile
+      if (window.innerWidth <= 900) switchTab('result');
+    }
+
+    function deleteHistory(id) {
+      let history = getHistory();
+      history = history.filter(h => h.id !== id);
+      localStorage.setItem('cs_history', JSON.stringify(history));
+      renderHistory();
+      showToast('Riwayat dihapus', 'info');
+    }
+
+    function clearHistory() {
+      localStorage.removeItem('cs_history');
+      renderHistory();
+      showToast('Semua riwayat dihapus', 'info');
+    }
+
+    /* ============ SHARE ============ */
+    function copyReport() {
+      if (!currentReview) { showToast('Belum ada review untuk di-copy', 'error'); return; }
+
+      const r = currentReview;
+      const md = `# CodeSense Review Report
+
+## Score: ${r.overall_score}/100 (Grade: ${r.grade})
+
+${r.summary}
+
+## Metrik
+- Complexity: ${r.metrics.complexity}/10
+- Maintainability: ${r.metrics.maintainability}/10
+- Readability: ${r.metrics.readability}/10
+- Security: ${r.metrics.security}/10
+- Performance: ${r.metrics.performance}/10
+
+## Issues (${r.issues.length})
+${r.issues.map(i => `- **[${i.severity.toUpperCase()}]** ${i.title}: ${i.description}`).join('\n')}
+
+## Kelebihan
+${(r.strengths || []).map(s => `- ✅ ${s}`).join('\n')}
+
+---
+*Generated by CodeSense AI Code Reviewer*`;
+
+      navigator.clipboard.writeText(md).then(() => {
+        showToast('Report berhasil di-copy ke clipboard!', 'success');
+      }).catch(() => {
+        showToast('Gagal meng-copy', 'error');
+      });
+    }
+
+    function exportPDF() {
+      showToast('Membuka print dialog...', 'info');
+      setTimeout(() => window.print(), 300);
+    }
+
+    /* ============ TOAST ============ */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      const icons = {
+        success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+      };
+
+      toast.innerHTML = `${icons[type] || icons.info}<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    /* ============ MOBILE TABS ============ */
+    function switchTab(tab) {
+      const tabs = document.querySelectorAll('.panel-tab');
+      tabs.forEach(t => t.classList.remove('active'));
+
+      if (tab === 'input') {
+        tabs[0].classList.add('active');
+        document.getElementById('panelLeft').style.display = '';
+        document.getElementById('panelRight').style.display = 'none';
+      } else {
+        tabs[1].classList.add('active');
+        document.getElementById('panelLeft').style.display = 'none';
+        document.getElementById('panelRight').style.display = '';
+      }
+    }
+  </script>
+</body>
+
+</html>
